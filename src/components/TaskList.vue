@@ -18,7 +18,7 @@
         <input
           type="checkbox"
           :checked="task.done"
-          @input="() => emit('changeTaskStatus', task.id)"
+          @change="() => emit('changeTaskStatus', task.id)"
         />
         <span
           :class="{
