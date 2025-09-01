@@ -2,28 +2,18 @@
   import { ref, computed } from 'vue';
 
   import TaskForm from './components/TaskForm.vue';
-  import type { TaskFilterType, Task } from './types';
   import TaskList from './components/TaskList.vue';
   import TaskFilterButton from './components/TaskFilterButton.vue';
+  import { useStore } from './composables/useStore';
+
+  const store = useStore();
 
   const message = ref('Tasks App');
-  const tasks = ref<Task[]>([]);
-  const activeTaskFilter = ref<TaskFilterType>('All');
-  const displayedTasks = computed(() => {
-    switch (activeTaskFilter.value) {
-      case 'Done':
-        return tasks.value.filter((t) => t.done);
-      case 'Todo':
-        return tasks.value.filter((t) => !t.done);
-      default:
-        return tasks.value;
-    }
-  });
-  const numberOfCompletedTasks = computed(() => tasks.value.filter((t) => t.done).length);
+  const numberOfCompletedTasks = computed(() => store.tasks.filter((t) => t.done).length);
 
   const onTaskAdd = (taskName: string) => {
-    const length = tasks.value.length.toString();
-    tasks.value.push({
+    const length = store.tasks.length.toString();
+    store.tasks.push({
       id: length,
       title: taskName,
       done: false,
@@ -31,19 +21,19 @@
   };
 
   const onChangeTaskStatus = (id: string) => {
-    const changedTaskindex = tasks.value.findIndex((t) => t.id === id);
+    const changedTaskindex = store.tasks.findIndex((t) => t.id === id);
     if (changedTaskindex === -1) {
       return;
     }
-    tasks.value[changedTaskindex].done = !tasks.value[changedTaskindex].done;
+    store.tasks[changedTaskindex].done = !store.tasks[changedTaskindex].done;
   };
 
   const onDeleteTask = (id: string) => {
-    const changedTaskIndex = tasks.value.findIndex((t) => t.id === id);
+    const changedTaskIndex = store.tasks.findIndex((t) => t.id === id);
     if (changedTaskIndex === -1) {
       return;
     }
-    tasks.value.splice(changedTaskIndex, 1);
+    store.tasks.splice(changedTaskIndex, 1);
   };
 </script>
 
@@ -52,30 +42,26 @@
     <h1>{{ message }}</h1>
     <TaskForm @add-task="onTaskAdd" />
     <!-- shorthand for :tasks=tasks -->
-    <h3 v-if="!tasks.length">Add a task to get started</h3>
-    <h3 v-else>{{ `${numberOfCompletedTasks}/${tasks.length} completed` }}</h3>
+    <h3 v-if="!store.tasks.length">Add a task to get started</h3>
+    <h3 v-else>{{ `${numberOfCompletedTasks}/${store.tasks.length} completed` }}</h3>
     <div class="button-container filter-buttons">
       <TaskFilterButton
-        :current-filter-type="activeTaskFilter"
+        :current-filter-type="store.activeTaskFilter.value"
         task-filter-type="All"
-        @change-filter="activeTaskFilter = 'All'"
+        @change-filter="store.activeTaskFilter.value = 'All'"
       />
       <TaskFilterButton
-        :current-filter-type="activeTaskFilter"
+        :current-filter-type="store.activeTaskFilter.value"
         task-filter-type="Done"
-        @change-filter="activeTaskFilter = 'Done'"
+        @change-filter="store.activeTaskFilter.value = 'Done'"
       />
       <TaskFilterButton
-        :current-filter-type="activeTaskFilter"
+        :current-filter-type="store.activeTaskFilter.value"
         task-filter-type="Todo"
-        @change-filter="activeTaskFilter = 'Todo'"
+        @change-filter="store.activeTaskFilter.value = 'Todo'"
       />
     </div>
-    <TaskList
-      :tasks="displayedTasks"
-      @change-task-status="onChangeTaskStatus"
-      @delete-task="onDeleteTask"
-    />
+    <TaskList @change-task-status="onChangeTaskStatus" @delete-task="onDeleteTask" />
   </main>
 </template>
 

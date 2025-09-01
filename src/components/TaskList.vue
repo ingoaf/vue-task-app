@@ -1,6 +1,19 @@
 <script lang="ts" setup>
-  import type { Task } from '@/types';
-  const props = defineProps<{ tasks: Task[] }>();
+  import { computed } from 'vue';
+
+  import { useStore } from '@/composables/useStore';
+  const store = useStore();
+
+  const displayedTasks = computed(() => {
+    switch (store.activeTaskFilter.value) {
+      case 'Done':
+        return store.tasks.filter((t) => t.done);
+      case 'Todo':
+        return store.tasks.filter((t) => !t.done);
+      default:
+        return store.tasks;
+    }
+  });
 
   const emit = defineEmits<{
     changeTaskStatus: [id: string];
@@ -13,7 +26,7 @@
   <!-- The tag determines in which element the list elements will be wrapped for animations -->
   <!-- The name determines which prefix the css classes for the animation will have   -->
   <TransitionGroup tag="div" name="task-list" class="task-list">
-    <article v-for="task in props.tasks" :key="task.id" class="task">
+    <article v-for="task in displayedTasks" :key="task.id" class="task">
       <label>
         <input
           type="checkbox"
